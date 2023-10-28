@@ -1,16 +1,20 @@
 const express = require("express");
 const app = express();
 const mongoose = require("mongoose");
-const Books = require("./models/Books");
+const booksRoute = require("./routes/books");
+const authRoute = require("./routes/auth");
+const authorRoute = require("./routes/Author");
+const CategoryRoute = require("./routes/category");
 
 app.use(express.json());
 
 mongoose
-  .connect(
-    "mongodb+srv://mohamedounissi2021:8X7izLlLVWYXvL0h@cluster0.mxf6yyh.mongodb.net/?retryWrites=true&w=majority"
-  )
-  .then(console.log("connected to mongodb"))
-  .catch((err) => console.log(err));
+  .connect("mongodb://127.0.0.1:27017/users", {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  })
+  .then(() => console.log("connexion a MongoDB reussie!"))
+  .catch((e) => console.log("connexion a MongoDB échouée!", e));
 
 // app.get("/api/tasks", (req, res, next) => {
 //   Task.find()
@@ -90,73 +94,10 @@ mongoose
 // });
 
 //Create Book
-app.post("/api/books", async (req, res) => {
-  const newBook = new Books(req.body);
 
-  try {
-    const savedBook = await newBook.save();
-    res.status(200).json(savedBook);
-  } catch (err) {
-    res.status(500).json({ msg: err.message });
-  }
-});
-
-//GET Books
-app.get("/api/books/:ISBN", async (req, res) => {
-  try {
-   
-    const Bookstoget = await Books.findOne({ ISBN: req.params.ISBN });
-    res.status(200).json(Bookstoget);
-  } catch (err) {
-    res.status(500).json({ msg: err.message });
-  }
-});
-
-app.get("/api/books", async (req, res) => {
-  try {
-    let BooksToget;
-    BooksToget = await Books.find();
-    res.status(200).json(BooksToget);
-  } catch (err) {
-    res.status(500).json({ msg: err.message });
-  }
-});
-
-//PUT books
-app.put("/api/books/:ISBN", async (req, res) => {
-  try {
-    const updatedBooks = await Books.findOneAndUpdate(
-      { ISBN: req.params.ISBN },
-      { $set: req.body },
-      { new: true }
-    );
-    res.status(200).json(updatedBooks);
-  } catch (err) {
-    res.status(500).json({ msg: err.message });
-  }
-});
-
-// Delete book
-
-app.delete("/api/books/:ISBN", async (req, res) => {
-  try {
-    const Bookstodelete = await Books.findOneAndDelete({
-      ISBN: req.params.ISBN,
-    });
-
-    if (Bookstodelete) {
-      res
-        .status(200)
-        .json("Book with ISBN: " + req.params.ISBN + " was deleted");
-    }else
-    {
-      res
-      .status(404)
-      .json("Book with ISBN: " + req.params.ISBN + " not found");
-    }
-  } catch (err) {
-    res.status(500).json({ msg: err.message });
-  }
-});
+app.use("/api/books", booksRoute);
+app.use("/api/auth", authRoute);
+app.use("/api/author", authorRoute);
+app.use("/api/category", CategoryRoute);
 
 app.listen(5000, () => {});
